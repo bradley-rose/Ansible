@@ -1,0 +1,40 @@
+---
+# tasks file for pre_check
+- name: Configure basic global settings
+  fortios_system_global:
+    vdom: "{{ vdom }}"
+    access_token: "{{ access_token }}"
+    system_global: 
+      hostname: "{{ hostname }}"
+      alias: "{{ hostname }}"
+      tftp: "disable"
+      admin_sport: "8443"
+      admin_sport: "880"
+      admin_ssh_port: "822"
+      admin_concurrent: "enable"
+      admin_https_redirect: "enable"
+      admin_lockout_duration: "10"
+      admin_maintainer: "disable"
+      admin_scp: "enable"
+      admin_telnet: "disable"
+      cfg_save: "automatic"
+      gui_certificates: "enable"
+      gui_date_format: "yyyy/MM/dd"
+      gui_date_time_source: "system"
+      gui_display_hostname: "enable"
+      gui_firmware_upgrade_warning: "disable"
+      gui_ipv6: "disable"
+      gui_wireless_opensecurity: "disable"
+      language: "english"
+      lldp_reception: "disable"
+      lldp_transmission: "disable"
+      login_timestamp: "enable"
+      switch_controller: "disable"
+
+- name: Disable firmware & config auto-install
+  fortios_system_auto_install:
+    vdom: "{{ vdom }}"
+    access_token: "{{ access_token }}"
+    system_auto_install: 
+      auto_install_config: "disable"
+      auto_install_image: "disable"

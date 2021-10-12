@@ -1,0 +1,14 @@
+---
+# tasks file for pre_check
+
+- name: Gather facts before OS upgrade
+  collections:
+    - fortinet.fortios
+  fortios_configuration_fact:
+    selector: system_status
+    access_token: "{{ access_token }}"
+  register: preIntFirm
+
+- name: Output FortiOS Version
+  debug:
+    msg: "{{ preIntFirm }}"

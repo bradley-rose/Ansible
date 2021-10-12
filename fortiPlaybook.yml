@@ -1,0 +1,26 @@
+---
+- hosts: fortigates
+  connection: httpapi
+  collections:
+  - fortinet.fortios
+  gather_facts: no
+  tasks:
+  - name: Run pre-check
+    include_role:
+      name: pre_check
+
+  - name: Configure Global Settings
+    include_role:
+      name: globalSettings
+
+  - name: Create LDAP
+    include_role:
+      name: ldap
+
+  #- name: Create Interfaces
+    #include_role:
+      #name: interfaces
+
+  - name: Create VPN
+    include_role:
+      name: vpn

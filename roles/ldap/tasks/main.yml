@@ -1,0 +1,19 @@
+---
+# tasks file for pre_check
+- name: Create LDAP
+  fortios_user_ldap:
+    vdom: "{{ vdom }}"
+    state: "present"
+    access_token: "{{ access_token }}"
+    user_ldap: 
+      name: "anotherLDAP" 
+      server: "10.69.69.69"
+      secondary_server: "192.168.69.69"
+      source_ip: "0.0.0.0"
+      cnid: "sAMAccountName"
+      dn: "ou=someOU,dc=domain,dc=ca"
+      type: "regular"
+      secure: "ldaps"
+      username: "someUsername"
+      password: "somePassword"
+      port: "636"
