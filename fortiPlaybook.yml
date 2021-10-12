@@ -1,26 +1,37 @@
 ---
-- hosts: fortigates
-  connection: httpapi
-  collections:
+    #Order
+    #1. Create Interfaces
+    #2. Create Address Objects
+    #3. Create LDAP
+    #4. Create VPN
+    #5. Cleanup 
+    #   (Create Local Admin, disable default)
+    #   (Create API Users, add to hosts)
+
+- hosts: spokes
+  collections: 
   - fortinet.fortios
+  connection: httpapi
   gather_facts: no
   tasks:
-  - name: Run pre-check
+  - name: Spoke Configuration
     include_role:
-      name: pre_check
+      name: spoke
 
-  - name: Configure Global Settings
-    include_role:
-      name: globalSettings
+#- hosts: hubs
+  #tasks: 
+  #- name: Hub Configuration
+    #include_role:
+      #name: hub
 
-  - name: Create LDAP
-    include_role:
-      name: ldap
+  #- name: Both Configuration
+    #include_role:
+      #name: general
 
   #- name: Create Interfaces
     #include_role:
       #name: interfaces
 
-  - name: Create VPN
-    include_role:
-      name: vpn
+  #- name: Create VPN
+    #include_role:
+      #name: vpn

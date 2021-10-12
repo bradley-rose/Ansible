@@ -9,7 +9,7 @@
       alias: "{{ hostname }}"
       tftp: "disable"
       admin_sport: "8443"
-      admin_sport: "880"
+      admin_port: "880"
       admin_ssh_port: "822"
       admin_concurrent: "enable"
       admin_https_redirect: "enable"

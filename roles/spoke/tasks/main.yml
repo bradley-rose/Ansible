@@ -1,0 +1,8 @@
+---
+# tasks file for creating Software Switch
+- name: Create Software Switch for LAN Interface Grouping
+  fortios_system_switch_interface:
+    vdom: "{{ vdom }}"
+    state: "present"
+    system_switch_interface: 
+      name: "default_name"
