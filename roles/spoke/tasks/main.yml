@@ -1,14 +1,17 @@
 ---
-# tasks file for Spokes
-# - name: Create Software Switch for LAN Interface Grouping
-#   fortios_system_switch_interface:
-#     vdom: "{{ vdom }}"
-#     state: "present"
-#     system_switch_interface: 
-#       name: "Internal"
-#       member:
-#        - interface_name: port3
-#       type: switch
+# tasks file for VPN Spokes
+- name: Configuring a SW Switch
+  fortios_system_switch_interface:
+    vdom:  "{{ vdom }}"
+    state: "present"
+    system_switch_interface:
+      name: "Internal"
+      type: "switch"
+      vdom: "{{ vdom }}"
+      member: 
+      - interface_name: "port3"
+      - interface_name: "port4"
+      span: "disable"
     
 - name: Create Network Object
   fortios_firewall_address:
@@ -126,6 +129,30 @@
       l2tp: "disable"
       comments: "Phase II"
       protocol: 0
+
+- name: Create Generic Firewall Policy
+  fortios_firewall_policy:
+    vdom: "{{ vdom }}"
+    state: "present"
+    firewall_policy:
+      policyid: "1"
+      name: NameofFirewallPolicy
+      action: "accept"
+      nat: "disable"
+      srcintf: 
+      - name: "port1"
+      dstintf:
+      - name: "port2"
+      dstaddr: 
+      - name: "all"
+      srcaddr: 
+      - name: "all"
+      status: "enable"
+      service:
+      - name: "ALL"
+      schedule: "always"
+      inspection_mode: "flow"
+      comments: "Basic Firewall Policy Creation with Ansible."
 
 # Next, create firewall policies for the VPN to permit traffic into and out of the tunnel.
 # Also, configure BGP for the tunnel.
