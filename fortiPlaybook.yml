@@ -7,6 +7,17 @@
     #5. Cleanup 
     #   (Create Local Admin, disable default)
     #   (Create API Users, add to hosts)
+    #6. Tie into FortiManager
+
+- hosts: fortigates
+  collections: 
+  - fortinet.fortios
+  connection: httpapi
+  gather_facts: no
+  tasks:
+  - name: Configuring the Basics
+    include_role:
+      name: globalSettings
 
 - hosts: spokes
   collections: 
@@ -18,20 +29,22 @@
     include_role:
       name: spoke
 
-#- hosts: hubs
-  #tasks: 
-  #- name: Hub Configuration
-    #include_role:
-      #name: hub
+- hosts: hubs
+  collections: 
+  - fortinet.fortios
+  connection: httpapi
+  gather_facts: no
+  tasks: 
+  - name: Hub Configuration
+    include_role:
+      name: hub
 
-  #- name: Both Configuration
-    #include_role:
-      #name: general
-
-  #- name: Create Interfaces
-    #include_role:
-      #name: interfaces
-
-  #- name: Create VPN
-    #include_role:
-      #name: vpn
+# - hosts: fortigates
+#   collections:
+#   - fortinet.fortios
+#   connection: httpapi
+#   gather_Facts: no
+#   tasks:
+#   - name: Device hardening
+#     include_role:
+#       name: hardening

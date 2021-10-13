@@ -3,14 +3,10 @@
 - name: Configure basic global settings
   fortios_system_global:
     vdom: "{{ vdom }}"
-    access_token: "{{ access_token }}"
     system_global: 
       hostname: "{{ hostname }}"
       alias: "{{ hostname }}"
       tftp: "disable"
-      admin_sport: "8443"
-      admin_port: "880"
-      admin_ssh_port: "822"
       admin_concurrent: "enable"
       admin_https_redirect: "enable"
       admin_lockout_duration: "10"
@@ -29,12 +25,10 @@
       lldp_reception: "disable"
       lldp_transmission: "disable"
       login_timestamp: "enable"
-      switch_controller: "disable"
 
 - name: Disable firmware & config auto-install
   fortios_system_auto_install:
     vdom: "{{ vdom }}"
-    access_token: "{{ access_token }}"
     system_auto_install: 
       auto_install_config: "disable"
       auto_install_image: "disable"

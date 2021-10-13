@@ -1,101 +1,77 @@
 ---
-# tasks file for Spokes
-# - name: Create Software Switch for LAN Interface Grouping
-#   fortios_system_switch_interface:
-#     vdom: "{{ vdom }}"
-#     state: "present"
-#     system_switch_interface: 
-#       name: "Internal"
-#       member:
-#        - interface_name: port3
-#       type: switch
-    
-- name: Create PC-VPNHub-West Address Object
+# tasks file for Hubs
+
+- name: Create PC 10.0.0.0/8 Network Object
   fortios_firewall_address:
     vdom: "{{ vdom }}"
     state: "present"
     firewall_address:
       type: "subnet"
-      name: "PC-VPNHub-West"
+      name: PC 10-Networks
       interface: "{{ wanIntf }}"
       associated_interface: "{{ wanIntf }}"
       color: "3"
-      comment: "PC-VPNHub-West Cluster"
-      subnet: "209.171.202.157/32"
-    
-- name: Create PC-VPNHub-East Address Object
+      comment: "PC LAN, 10.0.0.0/8 networks."
+      subnet: "10.0.0.0/8"
+
+- name: Create PC 172.168.0.0/12 Network Object
   fortios_firewall_address:
     vdom: "{{ vdom }}"
     state: "present"
     firewall_address:
       type: "subnet"
-      name: "PC-VPNHub-East"
+      name: PC 172-Networks
       interface: "{{ wanIntf }}"
       associated_interface: "{{ wanIntf }}"
       color: "3"
-      comment: "PC-VPNHub-East Cluster"
-      subnet: "205.193.180.7/32"
-    
-- name: Create FW Address Group
+      comment: "PC LAN, 172.16.0.0/12 networks."
+      subnet: "172.16.0.0/12"
+
+- name: Create PC 192.168.0.0/16 Network Object
+  fortios_firewall_address:
+    vdom: "{{ vdom }}"
+    state: "present"
+    firewall_address:
+      type: "subnet"
+      name: PC 192-Networks
+      interface: "{{ wanIntf }}"
+      associated_interface: "{{ wanIntf }}"
+      color: "3"
+      comment: "PC LAN, 192.168.0.0/16 networks."
+      subnet: "192.168.0.0/16"
+
+- name: Create FW Address Group for PC LANs
   fortios_firewall_addrgrp:
     vdom: "{{ vdom }}"
     state: "present"
     firewall_addrgrp:
       color: "3"
-      comment: "PC VPN Hubs"
-      name: "PC VPN Hubs"
-      member:
-       - name: "PC-VPNHub-East"
-       - name: "PC-VPNHub-West"
-
-- name: Create Local Address Object
-  fortios_firewall_address:
-    vdom: "{{ vdom }}"
-    state: "present"
-    firewall_address:
-      type: "subnet"
-      name: "Spoke"
-      comment: "LAN object"
-      subnet: "{{ host_subnet }}"
-      color: "3"
-
-- name: Create LDAP Object for AD Login
-  fortios_user_ldap:
-    vdom: "{{ vdom }}"
-    state: "present"
-    user_ldap: 
-      name: "PC-LDAP" 
-      server: "{{ ldapPrimary }}"
-      secondary_server: "{{ ldapSecondary }}"
-      source_ip: "0.0.0.0"
-      cnid: "sAMAccountName"
-      dn: "ou=cisco asa mgmt,ou=cisco asa easy vpn,ou=user accounts,ou=parks canada fa 2.0,dc=apca2,dc=gc,dc=ca"
-      type: "regular"
-      secure: "ldaps"
-      username: "Service-EasyVPN"
-      password: "ZSE$5tgb"
-      port: "636"
+      comment: "PC LANs"
+      name: "PC LANs"
+      member: 
+        - name: "PC 10-Networks"
+        - name: "PC 172-Networks"
+        - name: "PC 192-Networks"
 
 - name: Create IPsec VPN Configuration Phase 1
   fortios_vpn_ipsec_phase1_interface:
     vdom: "{{ vdom }}"
     state: "present"
     vpn_ipsec_phase1_interface: 
-      name: "{{ hostname }}" 
-      type: "static"
+      name: "{{ vpnName }}" 
+      type: "dynamic"
       interface: "{{ wanIntf }}"
       ip_version: "4"
       ike_version: "2"
       local_gw: "0.0.0.0"
-      remote_gw: "{{ vpn_gateway }}"
-      backup_gateway: "{{ backup_gateway }}"
+      remote_gw: "0.0.0.0"
       keylife: "86400"
       authmethod: "psk"
       mode: "main"
       peertype: "any"
       default_gw: "0.0.0.0"
       default_gw_priority: "0"
-      tunnel_search: "selectors"
+      tunnel_search: "nexthop"
       passive_mode: "disable"
       mode_cfg: "disable"
       unity_support: "enable"
@@ -108,19 +84,20 @@
       wizard_type: "custom"
       fragmentation: "enable"
       dpd: "on-idle"
-      comments: "VPN Tunnel to Parks Canada network."
+      comments: "VPN Tunnel to Remote Parks Canada sites."
       dhgrp: "20"
       signature_hash_alg: "sha2-384"
       rsa_signature_format: "pkcs1"
       cert_id_validation: "enable"
+      nattraversal: "enable"
 
 - name: Create IPsec VPN Configuration Phase 2
   fortios_vpn_ipsec_phase2_interface:
     vdom: "{{ vdom }}"
     state: "present"
     vpn_ipsec_phase2_interface: 
-      name: "{{ hostname }}" 
-      phase1name: "{{ hostname }}"
+      name: "{{ vpnName }}" 
+      phase1name: "{{ vpnName }}"
       dhcp_ipsec: "disable"
       proposal: "chacha20poly1305"
       pfs: "enable"
@@ -140,7 +117,7 @@
       comments: "Phase II for PC VPN"
       protocol: 0
 
-# - name: Create SpokeToHub Firewall Policy for VPN
+# - name: Create HubToSpoke Firewall Policy for VPN
 #   fortios_firewall_policy:
 #     vdom: "{{ vdom }}"
 #     state: "present"
@@ -150,14 +127,21 @@
 #       action: "accept"
 #       nat: "disable"
 #       srcintf: 
-#       - name: port3
-#       dstintf: 
-#       - name: "{{ hostname }}"
+#         - name: "{{ vpnName }}"
+#       dstintf:
+#         - name: port3
+#       dstaddr: 
+#         - name: "all"
+#       srcaddr: 
+#         - name: "all"
 #       status: "enable"
+#       service:
+#         - name: all
+#       schedule: "always"
 #       inspection_mode: "flow"
-#       comments: "Policy for VPN Traffic from LAN to VPN Hub."
+#       comments: "Policy for VPN Traffic from VPN Hub to remote LAN."
 
-# - name: Create HubToSpoke Firewall Policy for VPN
+# - name: Create SpokeToHub Firewall Policy for VPN
 #   fortios_firewall_policy:
 #     vdom: "{{ vdom }}"
 #     state: "present"
@@ -166,8 +150,41 @@
 #       name: SpokeToHub
 #       action: "accept"
 #       nat: "disable"
-#       srcintf: " {{ hostname }}"
-#       dstintf: port3
+#       srcintf: 
+#         - name: port3
+#       dstintf:
+#         - name: "{{ vpnName }}"
+#       dstaddr: 
+#         - name: "all"
+#       srcaddr: 
+#         - name: "all"
 #       status: "enable"
+#       service:
+#         - name: all
+#       schedule: "always"
 #       inspection_mode: "flow"
-#       comments: "Policy for VPN Traffic from VPN Hub to LAN."
+#       comments: "Policy for VPN Traffic from LAN to VPN Hub."
+
+# - name: Create SpokeToHub Firewall Policy for VPN
+#   fortios_firewall_policy:
+#     vdom: "{{ vdom }}"
+#     state: "present"
+#     firewall_policy:
+#       policyid: "3"
+#       name: SpokeToHub
+#       action: "accept"
+#       nat: "disable"
+#       srcintf: 
+#         - name: "{{ vpnName }}"
+#       dstintf:
+#         - name: "{{ vpnName }}"
+#       dstaddr: 
+#         - name: "PC LANs"
+#       srcaddr: 
+#         - name: "PC LANs"
+#       status: "enable"
+#       service:
+#         - name: all
+#       schedule: "always"
+#       inspection_mode: "flow"
+#       comments: "Policy for VPN Traffic from LAN to VPN Hub."
