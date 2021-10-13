@@ -10,43 +10,30 @@
 #        - interface_name: port3
 #       type: switch
     
-- name: Create PC-VPNHub-West Address Object
+- name: Create Network Object
   fortios_firewall_address:
     vdom: "{{ vdom }}"
     state: "present"
     firewall_address:
       type: "subnet"
-      name: "PC-VPNHub-West"
+      name: ExampleObject
       interface: "{{ wanIntf }}"
       associated_interface: "{{ wanIntf }}"
       color: "3"
-      comment: "PC-VPNHub-West Cluster"
-      subnet: "209.171.202.157/32"
+      comment: "Test Network Object Creation"
+      subnet: "172.16.69.0/24"
     
-- name: Create PC-VPNHub-East Address Object
-  fortios_firewall_address:
-    vdom: "{{ vdom }}"
-    state: "present"
-    firewall_address:
-      type: "subnet"
-      name: "PC-VPNHub-East"
-      interface: "{{ wanIntf }}"
-      associated_interface: "{{ wanIntf }}"
-      color: "3"
-      comment: "PC-VPNHub-East Cluster"
-      subnet: "205.193.180.7/32"
-    
-- name: Create FW Address Group
+- name: Create ExampleObject FW Group
   fortios_firewall_addrgrp:
     vdom: "{{ vdom }}"
     state: "present"
     firewall_addrgrp:
       color: "3"
-      comment: "PC VPN Hubs"
-      name: "PC VPN Hubs"
-      member:
-       - name: "PC-VPNHub-East"
-       - name: "PC-VPNHub-West"
+      comment: "ExampleObject"
+      name: "ExampleObjectGroup"
+      member: 
+        - name: "ExampleObject"
+
 
 - name: Create Local Address Object
   fortios_firewall_address:
@@ -64,16 +51,16 @@
     vdom: "{{ vdom }}"
     state: "present"
     user_ldap: 
-      name: "PC-LDAP" 
+      name: "LDAP" 
       server: "{{ ldapPrimary }}"
       secondary_server: "{{ ldapSecondary }}"
       source_ip: "0.0.0.0"
       cnid: "sAMAccountName"
-      dn: "ou=cisco asa mgmt,ou=cisco asa easy vpn,ou=user accounts,ou=parks canada fa 2.0,dc=apca2,dc=gc,dc=ca"
+      dn: "ou=OrganizationUnit,dc=domain,dc=tld"
       type: "regular"
       secure: "ldaps"
-      username: "Service-EasyVPN"
-      password: "ZSE$5tgb"
+      username: "LDAPUser"
+      password: "LDAPPassword"
       port: "636"
 
 - name: Create IPsec VPN Configuration Phase 1
@@ -99,8 +86,8 @@
       passive_mode: "disable"
       mode_cfg: "disable"
       unity_support: "enable"
-      proposal: "chacha20poly1305-prfsha384"
-      psksecret: "3ZVPN@ccess"
+      proposal: "des-sha1"
+      psksecret: "vpnPassword1!"
       auto_negotiate: "enable"
       keepalive: "10"
       distance: "15"
@@ -108,9 +95,9 @@
       wizard_type: "custom"
       fragmentation: "enable"
       dpd: "on-idle"
-      comments: "VPN Tunnel to Parks Canada network."
-      dhgrp: "20"
-      signature_hash_alg: "sha2-384"
+      comments: "VPN"
+      dhgrp: "14"
+      signature_hash_alg: "sha1"
       rsa_signature_format: "pkcs1"
       cert_id_validation: "enable"
 
@@ -122,9 +109,9 @@
       name: "{{ hostname }}" 
       phase1name: "{{ hostname }}"
       dhcp_ipsec: "disable"
-      proposal: "chacha20poly1305"
+      proposal: "des"
       pfs: "enable"
-      dhgrp: "20"
+      dhgrp: "14"
       replay: "enable"
       keepalive: "disable"
       auto_negotiate: "disable"
@@ -137,37 +124,8 @@
       route_overlap: "use-new"
       encapsulation: "tunnel-mode"
       l2tp: "disable"
-      comments: "Phase II for PC VPN"
+      comments: "Phase II"
       protocol: 0
 
-# - name: Create SpokeToHub Firewall Policy for VPN
-#   fortios_firewall_policy:
-#     vdom: "{{ vdom }}"
-#     state: "present"
-#     firewall_policy:
-#       policyid: "1"
-#       name: SpokeToHub
-#       action: "accept"
-#       nat: "disable"
-#       srcintf: 
-#       - name: port3
-#       dstintf: 
-#       - name: "{{ hostname }}"
-#       status: "enable"
-#       inspection_mode: "flow"
-#       comments: "Policy for VPN Traffic from LAN to VPN Hub."
-
-# - name: Create HubToSpoke Firewall Policy for VPN
-#   fortios_firewall_policy:
-#     vdom: "{{ vdom }}"
-#     state: "present"
-#     firewall_policy:
-#       policyid: "2"
-#       name: SpokeToHub
-#       action: "accept"
-#       nat: "disable"
-#       srcintf: " {{ hostname }}"
-#       dstintf: port3
-#       status: "enable"
-#       inspection_mode: "flow"
-#       comments: "Policy for VPN Traffic from VPN Hub to LAN."
+# Next, create firewall policies for the VPN to permit traffic into and out of the tunnel.
+# Also, configure BGP for the tunnel.

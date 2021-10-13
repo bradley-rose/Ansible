@@ -1,57 +1,29 @@
 ---
 # tasks file for Hubs
 
-- name: Create PC 10.0.0.0/8 Network Object
+- name: Create Network Object
   fortios_firewall_address:
     vdom: "{{ vdom }}"
     state: "present"
     firewall_address:
       type: "subnet"
-      name: PC 10-Networks
+      name: ExampleObject
       interface: "{{ wanIntf }}"
       associated_interface: "{{ wanIntf }}"
       color: "3"
-      comment: "PC LAN, 10.0.0.0/8 networks."
-      subnet: "10.0.0.0/8"
+      comment: "Test Network Object Creation"
+      subnet: "172.16.69.0/24"
 
-- name: Create PC 172.168.0.0/12 Network Object
-  fortios_firewall_address:
-    vdom: "{{ vdom }}"
-    state: "present"
-    firewall_address:
-      type: "subnet"
-      name: PC 172-Networks
-      interface: "{{ wanIntf }}"
-      associated_interface: "{{ wanIntf }}"
-      color: "3"
-      comment: "PC LAN, 172.16.0.0/12 networks."
-      subnet: "172.16.0.0/12"
-
-- name: Create PC 192.168.0.0/16 Network Object
-  fortios_firewall_address:
-    vdom: "{{ vdom }}"
-    state: "present"
-    firewall_address:
-      type: "subnet"
-      name: PC 192-Networks
-      interface: "{{ wanIntf }}"
-      associated_interface: "{{ wanIntf }}"
-      color: "3"
-      comment: "PC LAN, 192.168.0.0/16 networks."
-      subnet: "192.168.0.0/16"
-
-- name: Create FW Address Group for PC LANs
+- name: Create ExampleObject FW Group
   fortios_firewall_addrgrp:
     vdom: "{{ vdom }}"
     state: "present"
     firewall_addrgrp:
       color: "3"
-      comment: "PC LANs"
-      name: "PC LANs"
+      comment: "ExampleObject"
+      name: "ExampleObjectGroup"
       member: 
-        - name: "PC 10-Networks"
-        - name: "PC 172-Networks"
-        - name: "PC 192-Networks"
+        - name: "ExampleObject"
 
 - name: Create IPsec VPN Configuration Phase 1
   fortios_vpn_ipsec_phase1_interface:
@@ -75,8 +47,8 @@
       passive_mode: "disable"
       mode_cfg: "disable"
       unity_support: "enable"
-      proposal: "chacha20poly1305-prfsha384"
-      psksecret: "3ZVPN@ccess"
+      proposal: "des-md5"
+      psksecret: "vpnPassword1!"
       auto_negotiate: "enable"
       keepalive: "10"
       distance: "15"
@@ -84,12 +56,12 @@
       wizard_type: "custom"
       fragmentation: "enable"
       dpd: "on-idle"
-      comments: "VPN Tunnel to Remote Parks Canada sites."
-      dhgrp: "20"
-      signature_hash_alg: "sha2-384"
+      comments: "VPN test"
+      dhgrp: "14"
+      signature_hash_alg: "sha1"
       rsa_signature_format: "pkcs1"
       cert_id_validation: "enable"
-      nattraversal: "enable"
+      nattraversal: "disable"
 
 - name: Create IPsec VPN Configuration Phase 2
   fortios_vpn_ipsec_phase2_interface:
@@ -99,9 +71,9 @@
       name: "{{ vpnName }}" 
       phase1name: "{{ vpnName }}"
       dhcp_ipsec: "disable"
-      proposal: "chacha20poly1305"
+      proposal: "des"
       pfs: "enable"
-      dhgrp: "20"
+      dhgrp: "14"
       replay: "enable"
       keepalive: "disable"
       auto_negotiate: "disable"
@@ -114,77 +86,7 @@
       route_overlap: "use-new"
       encapsulation: "tunnel-mode"
       l2tp: "disable"
-      comments: "Phase II for PC VPN"
-      protocol: 0
+      comments: "test Phase II VPN"
 
-# - name: Create HubToSpoke Firewall Policy for VPN
-#   fortios_firewall_policy:
-#     vdom: "{{ vdom }}"
-#     state: "present"
-#     firewall_policy:
-#       policyid: "1"
-#       name: SpokeToHub
-#       action: "accept"
-#       nat: "disable"
-#       srcintf: 
-#         - name: "{{ vpnName }}"
-#       dstintf:
-#         - name: port3
-#       dstaddr: 
-#         - name: "all"
-#       srcaddr: 
-#         - name: "all"
-#       status: "enable"
-#       service:
-#         - name: all
-#       schedule: "always"
-#       inspection_mode: "flow"
-#       comments: "Policy for VPN Traffic from VPN Hub to remote LAN."
-
-# - name: Create SpokeToHub Firewall Policy for VPN
-#   fortios_firewall_policy:
-#     vdom: "{{ vdom }}"
-#     state: "present"
-#     firewall_policy:
-#       policyid: "2"
-#       name: SpokeToHub
-#       action: "accept"
-#       nat: "disable"
-#       srcintf: 
-#         - name: port3
-#       dstintf:
-#         - name: "{{ vpnName }}"
-#       dstaddr: 
-#         - name: "all"
-#       srcaddr: 
-#         - name: "all"
-#       status: "enable"
-#       service:
-#         - name: all
-#       schedule: "always"
-#       inspection_mode: "flow"
-#       comments: "Policy for VPN Traffic from LAN to VPN Hub."
-
-# - name: Create SpokeToHub Firewall Policy for VPN
-#   fortios_firewall_policy:
-#     vdom: "{{ vdom }}"
-#     state: "present"
-#     firewall_policy:
-#       policyid: "3"
-#       name: SpokeToHub
-#       action: "accept"
-#       nat: "disable"
-#       srcintf: 
-#         - name: "{{ vpnName }}"
-#       dstintf:
-#         - name: "{{ vpnName }}"
-#       dstaddr: 
-#         - name: "PC LANs"
-#       srcaddr: 
-#         - name: "PC LANs"
-#       status: "enable"
-#       service:
-#         - name: all
-#       schedule: "always"
-#       inspection_mode: "flow"
-#       comments: "Policy for VPN Traffic from LAN to VPN Hub."
+# Next, create firewall policies for the VPN to permit traffic into and out of the tunnel.
+# Also, configure BGP for the tunnel.

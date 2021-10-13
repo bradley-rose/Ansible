@@ -3,6 +3,6 @@
   fortios_system_global:
     vdom: "{{ vdom }}"
     system_global: 
-      admin_sport: "8443"
-      admin_port: "880"
-      admin_ssh_port: "822"
+      admin_sport: "443"
+      admin_port: "80"
+      admin_ssh_port: "22"
